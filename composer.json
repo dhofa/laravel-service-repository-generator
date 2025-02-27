@@ -1,0 +1,21 @@
+{
+  "name": "yourname/laravel-generator",
+  "description": "Service and Repository generator for Laravel",
+  "type": "laravel-package",
+  "require": {
+      "php": "^8.0",
+      "illuminate/support": "^9.0|^10.0"
+  },
+  "autoload": {
+      "psr-4": {
+          "YourName\\Generator\\": "src/"
+      }
+  },
+  "extra": {
+      "laravel": {
+          "providers": [
+              "YourName\\Generator\\GeneratorServiceProvider"
+          ]
+      }
+  }
+}

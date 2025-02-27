@@ -1,0 +1,20 @@
+<?php
+
+namespace {{namespace}};
+
+class {{class}}Service
+{
+    protected ${{class}}Repository $repository;
+
+    public function __construct({{class}}Repository $repository)
+    {
+        $this->repository = $repository;
+    }
+
+    public function all()
+    {
+        return $this->repository->all();
+    }
+
+    // Add more service methods as needed
+}
