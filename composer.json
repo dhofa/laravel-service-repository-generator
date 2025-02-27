@@ -1,5 +1,5 @@
 {
-  "name": "dhofa/laravel-generator",
+  "name": "dhofa/laravel-service-repository-generator",
   "description": "Service and Repository generator for Laravel",
   "type": "laravel-package",
   "require": {
