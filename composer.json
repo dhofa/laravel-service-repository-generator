@@ -1,5 +1,5 @@
 {
-  "name": "yourname/laravel-generator",
+  "name": "dhofa/laravel-generator",
   "description": "Service and Repository generator for Laravel",
   "type": "laravel-package",
   "require": {
@@ -8,13 +8,13 @@
   },
   "autoload": {
       "psr-4": {
-          "YourName\\Generator\\": "src/"
+          "Moonz\\Generator\\": "src/"
       }
   },
   "extra": {
       "laravel": {
           "providers": [
-              "YourName\\Generator\\GeneratorServiceProvider"
+              "Moonz\\Generator\\GeneratorServiceProvider"
           ]
       }
   }
