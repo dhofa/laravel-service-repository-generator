@@ -1,0 +1,63 @@
+<?php
+
+namespace App\Traits;
+
+use Exception;
+use Illuminate\Support\Str;
+
+trait Uuid
+{
+    protected static function bootUuid()
+    {
+        static::creating(function ($model) {
+            try {
+                $model->uuid = Str::uuid()->toString();
+
+                if (request()->headers->has('x-user')) {
+                    $userData = json_decode(request()->header('x-user'));
+                    if ($userData) {
+                        $userId = $userData->id;
+                        
+                        if ($userId){
+                            $model->created_by = $userId;
+                            $model->updated_by = $userId;
+                        }
+                    }
+                }
+            } catch (Exception $e) {
+                throw $e;
+            }
+        });
+
+        static::updating(function ($model) {
+            try {
+                if (request()->headers->has('x-user')) {
+                    $userData = json_decode(request()->header('x-user'));
+                    if ($userData) {
+                        $userId = $userData->id;
+                        
+                        if ($userId){
+                            $model->updated_by = $userId;
+                        }
+                    }
+                }
+            } catch (Exception $e) {
+                throw $e;
+            }
+        });
+
+        static::deleting(function ($model) {
+            try {
+                if (request()->headers->has('x-user')){
+                    $userData = json_decode(request()->header('x-user'));
+                    $userId = $userData->id;
+
+                    $model->deleted_by = $userId;
+                    $model->save();
+                }
+            } catch (Exception $e) {
+                throw $e;
+            }
+        });
+    }
+}

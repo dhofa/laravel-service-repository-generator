@@ -17,6 +17,9 @@ class InitServiceRepository extends Command
         // Install Packages Spatie\QueryBuilder\QueryBuilder
         $this->installDependencies();
 
+        // Initialize Traits
+        $this->generateTraits();
+
         // Generate ApiResponse
         $this->generateApiResponse();
 
@@ -55,9 +58,26 @@ class InitServiceRepository extends Command
         $this->info('spatie/laravel-query-builder installed successfully.');
     }
 
+    protected function generateTraits()
+    {
+        $uuidPath = app_path("Traits/Uuid.php");
+        $stub = file_get_contents(__DIR__ . '/../Stubs/uuid.stub');
+        
+        $content = str_replace(
+            ['{{namespace}}'],
+            ['App\Traits'],
+            $stub
+        );
+
+        File::ensureDirectoryExists(app_path('Traits'));
+        File::put($uuidPath, $content);
+
+        $this->info("Traits created successfully at <info><a href='{$uuidPath}'>" . basename($uuidPath) . "</a></info>!");
+    }
+
     protected function generateAppException()
     {
-        $repositoryPath = app_path("Exceptions/AppException.php");
+        $exceptionPath = app_path("Exceptions/AppException.php");
         $stub = file_get_contents(__DIR__ . '/../Stubs/app-exception.stub');
         
         $content = str_replace(
@@ -67,14 +87,14 @@ class InitServiceRepository extends Command
         );
 
         File::ensureDirectoryExists(app_path('Exceptions'));
-        File::put($repositoryPath, $content);
+        File::put($exceptionPath, $content);
 
-        $this->info("App Exception created successfully at <info><a href='{$repositoryPath}'>" . basename($repositoryPath) . "</a></info>!");
+        $this->info("App Exception created successfully at <info><a href='{$exceptionPath}'>" . basename($exceptionPath) . "</a></info>!");
     }
 
     protected function generateBaseRepository()
     {
-        $repositoryPath = app_path("Repositories/BaseRepository.php");
+        $baseRepositoryPath = app_path("Repositories/BaseRepository.php");
         $stub = file_get_contents(__DIR__ . '/../Stubs/base-repository.stub');
         
         $content = str_replace(
@@ -84,14 +104,14 @@ class InitServiceRepository extends Command
         );
 
         File::ensureDirectoryExists(app_path('Repositories'));
-        File::put($repositoryPath, $content);
+        File::put($baseRepositoryPath, $content);
 
-        $this->info("Base Repository created successfully at <info><a href='{$repositoryPath}'>" . basename($repositoryPath) . "</a></info>!");
+        $this->info("Base Repository created successfully at <info><a href='{$baseRepositoryPath}'>" . basename($repositoryPath) . "</a></info>!");
     }
 
     protected function generateApiResponse()
     {
-        $repositoryPath = app_path("Helpers/ApiResponse.php");
+        $apiResponsePath = app_path("Helpers/ApiResponse.php");
         $stub = file_get_contents(__DIR__ . '/../Stubs/api-response.stub');
         
         $content = str_replace(
@@ -101,14 +121,14 @@ class InitServiceRepository extends Command
         );
 
         File::ensureDirectoryExists(app_path('Helpers'));
-        File::put($repositoryPath, $content);
+        File::put($apiResponsePath, $content);
 
-        $this->info("ApiResponse created successfully at <info><a href='{$repositoryPath}'>" . basename($repositoryPath) . "</a></info>!");
+        $this->info("ApiResponse created successfully at <info><a href='{$apiResponsePath}'>" . basename($apiResponsePath) . "</a></info>!");
     }
 
     protected function generateAppServiceProvider()
     {
-        $repositoryPath = app_path("Providers/AppServiceProvider.php");
+        $appProviderPath = app_path("Providers/AppServiceProvider.php");
         $stub = file_get_contents(__DIR__ . '/../Stubs/app-service-provider.stub');
         
         $content = str_replace(
@@ -118,9 +138,9 @@ class InitServiceRepository extends Command
         );
 
         File::ensureDirectoryExists(app_path('Providers'));
-        File::put($repositoryPath, $content);
+        File::put($appProviderPath, $content);
 
-        $this->info("AppServiceProvider created successfully at <info><a href='{$repositoryPath}'>" . basename($repositoryPath) . "</a></info>!");
+        $this->info("AppServiceProvider created successfully at <info><a href='{$appProviderPath}'>" . basename($appProviderPath) . "</a></info>!");
     }
 
     public function generateRepositoryServiceProvider()
@@ -146,7 +166,7 @@ class InitServiceRepository extends Command
 
     protected function generateProviders()
     {
-        $repositoryPath = base_path("bootstrap/providers.php");
+        $providersPath = base_path("bootstrap/providers.php");
         $stub = file_get_contents(__DIR__ . '/../Stubs/providers.stub');
         
         $content = str_replace(
@@ -156,7 +176,7 @@ class InitServiceRepository extends Command
         );
 
         File::ensureDirectoryExists(base_path('bootstrap'));
-        File::put($repositoryPath, $content);
-        $this->info("RouteServiceProvider created successfully at <info><a href='{$repositoryPath}'>" . basename($repositoryPath) . "</a></info>!");
+        File::put($providersPath, $content);
+        $this->info("RouteServiceProvider created successfully at <info><a href='{$providersPath}'>" . basename($providersPath) . "</a></info>!");
     }
 }
