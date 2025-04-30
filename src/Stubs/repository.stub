@@ -25,7 +25,6 @@ class {{class}}Repository extends BaseRepository implements {{class}}RepositoryI
     {
         return [
             AllowedFilter::exact('id'),
-            AllowedFilter::exact('uuid'),
             AllowedFilter::scope('search'),
             AllowedFilter::trashed(),
         ];

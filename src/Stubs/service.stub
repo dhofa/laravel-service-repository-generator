@@ -2,19 +2,72 @@
 
 namespace {{namespace}};
 
+use App\Exceptions\AppException;
+use App\Http\Requests\{{class}}\CreateRequest;
+use App\Http\Requests\{{class}}\UpdateRequest;
+use Illuminate\Http\Request;
+
+use App\Repositories\Contracts\{{class}}RepositoryInterface;
+use App\Http\Resources\{{class}}Resource;
+use App\Http\Resources\PaginateCollection;
+
 class {{class}}Service
 {
-    protected ${{class}}Repository $repository;
+    public function __construct(
+        protected {{class}}RepositoryInterface $collaboratorRepository,
+    ) {}
 
-    public function __construct({{class}}Repository $repository)
-    {
-        $this->repository = $repository;
+    public function getAll{{class}}(Request $request) {
+        if($request->has('per_page')) {
+            $perPage = $request->per_page;
+            $result = $this->collaboratorRepository->paginate($perPage);
+            $collection = new PaginateCollection($result, {{class}}Resource::class);
+            return $collection;
+        } else {
+            $result = $this->collaboratorRepository->get();
+            $collection = {{class}}Resource::collection($result);
+            return $collection;
+        }
     }
 
-    public function all()
-    {
-        return $this->repository->all();
+    public function find{{class}}($id) {
+        $result = $this->collaboratorRepository->find($id);
+        if ($result) {
+            return {{class}}Resource::make($result);
+        } else {
+            return throw new AppException('Upps data tidak ditemukan...');
+        }
     }
 
-    // Add more service methods as needed
+    public function create{{class}}(CreateRequest $request) {
+        $payload = $this->map{{class}}FormData($request);
+        $result = $this->collaboratorRepository->create($payload);
+        if ($result) {
+            $result = $this->collaboratorRepository->find($result->uuid);
+            return {{class}}Resource::make($result);
+        } else {
+            return throw new AppException('Upps gagal menyimpan data...');
+        }
+    }
+
+    public function update{{class}}(UpdateRequest $request, string $id) {
+        $payload = $this->map{{class}}FormData($request);
+        $result = $this->collaboratorRepository->update($id, $payload);
+        if ($result) {
+            $result = $this->collaboratorRepository->find($result->uuid);
+            return {{class}}Resource::make($result);
+        } else {
+            return throw new AppException('Upps gagal menyimpan data...');
+        }
+    }
+
+    public function delete{{class}}($id) {
+        return $this->collaboratorRepository->delete($id);
+    }
+
+    protected function map{{class}}FormData($request) {
+        $validated = $request->validated();
+
+        return $validated;
+    }
 }

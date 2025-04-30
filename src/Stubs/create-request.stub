@@ -1,0 +1,65 @@
+<?php
+
+namespace {{namespace}}\{{class}};
+
+use App\Helpers\ApiResponse;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Http\Response;
+
+class CreateRequest extends FormRequest
+{
+    /**
+     * Determine if the user is authorized to make this request.
+     */
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     */
+    public function rules(): array
+    {
+        return [
+            'name' => 'required|string',
+        ];
+    }
+
+    /**
+     * Custom validation message.
+     *
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array|string>
+     */
+
+    public function messages(): array
+    {
+        return [
+            'name.required' => 'Kolom Name harus diisi',
+        ];
+    }
+
+    /**
+     * Handle a failed validation attempt.
+     *
+     * @param  \Illuminate\Contracts\Validation\Validator  $validator
+     * @return void
+     *
+     * @throws \Illuminate\Validation\ValidationException
+     */
+    protected function failedValidation(Validator $validator)
+    {
+        $message = "Form tidak valid..";
+        $data = [
+            'errors' => $validator->errors(),
+        ];
+
+        throw new HttpResponseException(
+            ApiResponse::error($message, $data, Response::HTTP_UNPROCESSABLE_ENTITY)
+        );
+    }
+}

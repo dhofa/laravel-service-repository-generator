@@ -1,0 +1,65 @@
+<?php
+
+namespace App\Http\Resources;
+
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
+use Spatie\QueryBuilder\QueryBuilderRequest;
+use Illuminate\Support\Str;
+
+class {{class}}Resource extends JsonResource
+{
+    public QueryBuilderRequest $queryBuilderRequest;
+
+    public function __construct($resource) {
+        parent::__construct($resource);
+        $this->queryBuilderRequest = QueryBuilderRequest::fromRequest(app('request'));
+    }
+
+    public function allowedIncludes(): array {
+        // this is a crucial part, this how we know what includes a user requested. e.g. ?include=variants,property_values
+        return $this->queryBuilderRequest->includes()->toArray();
+    }
+
+    public function arrayData(Request $request): array
+    {
+        $arrayData = [
+            "id"                 => $this->id,
+            "uuid"               => $this->uuid,
+            "created_at"         => $this->created_at,
+            "updated_at"         => $this->updated_at,
+            "deleted_at"         => $this->deleted_at,
+        ];
+
+        return $arrayData;
+    }
+
+    public function resourceMap(): array
+    {
+        return [
+          
+        ];
+    }
+
+    public function toArray(Request $request)
+    {
+        $relations = collect($this->allowedIncludes())->mapWithKeys(
+            function($relationName) {
+                $snakeCaseRelationName = Str::snake($relationName);
+                if(isset($this->resourceMap()[$relationName])) {
+                    $resolver = $this->resourceMap()[$relationName];
+                    return [
+                        $snakeCaseRelationName => $resolver($this->whenLoaded($relationName)),
+                    ];
+                }
+                return [$snakeCaseRelationName => $this->whenLoaded($relationName)];
+            },
+        );
+        
+        return array_merge(
+            $this->arrayData($request),
+            $relations->toArray(),
+        );
+    }
+}
