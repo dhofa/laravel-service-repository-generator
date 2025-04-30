@@ -1,4 +1,4 @@
         
-        $this->app->singleton(TestModelRepositoryInterface::class, function ($app) {
-            return new TestModelRepository(new TestModel());
+        $this->app->singleton({{class}}RepositoryInterface::class, function ($app) {
+            return new {{class}}Repository(new {{class}}());
         });

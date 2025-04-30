@@ -4,6 +4,8 @@ namespace Moonz\Generator\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
+use Symfony\Component\Process\Process;
+use Symfony\Component\Process\Exception\ProcessFailedException;
 
 class InitServiceRepository extends Command
 {
@@ -12,6 +14,9 @@ class InitServiceRepository extends Command
 
     public function handle()
     {
+        // Install Packages Spatie\QueryBuilder\QueryBuilder
+        $this->installDependencies();
+
         // Generate ApiResponse
         $this->generateApiResponse();
 
@@ -31,6 +36,23 @@ class InitServiceRepository extends Command
         $this->generateProviders();
 
         $this->info("Base Service Repository generated successfully!");
+    }
+
+    protected function installDependencies()
+    {
+        $this->info('Installing spatie/laravel-query-builder...');
+
+        $process = new Process(['composer', 'require', 'spatie/laravel-query-builder']);
+        $process->setTimeout(300); // optional, in seconds
+        $process->run(function ($type, $buffer) {
+            echo $buffer;
+        });
+
+        if (!$process->isSuccessful()) {
+            throw new ProcessFailedException($process);
+        }
+
+        $this->info('spatie/laravel-query-builder installed successfully.');
     }
 
     protected function generateAppException()
