@@ -1,0 +1,18 @@
+<?php
+
+namespace {{namespace}};
+
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Model;
+use Spatie\QueryBuilder\QueryBuilder;
+
+interface {{class}}RepositoryInterface
+{
+    public function get();
+    public function paginate(int $perPage = 10): LengthAwarePaginator;
+    public function find($id): ?Model;
+    public function query(): QueryBuilder;
+    public function create(array $payload): Model;
+    public function update($id, array $payload): Model;
+    public function delete($id): bool;
+}

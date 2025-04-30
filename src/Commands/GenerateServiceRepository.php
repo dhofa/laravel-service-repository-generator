@@ -14,8 +14,15 @@ class GenerateServiceRepository extends Command
     {
         $name = $this->argument('name');
         
+        // Generate Base Repository
+        $this->generateBaseRepository();
+
         // Generate Service
         $this->generateService($name);
+
+        // Generate Interface Repository
+        $this->generateInterfaceRepository($name);
+        
         // Generate Repository
         $this->generateRepository($name);
 
@@ -35,6 +42,36 @@ class GenerateServiceRepository extends Command
 
         File::ensureDirectoryExists(app_path('Services'));
         File::put($servicePath, $content);
+    }
+
+    protected function generateBaseRepository()
+    {
+        $repositoryPath = app_path("Repositories/BaseRepository.php");
+        $stub = file_get_contents(__DIR__ . '/../Stubs/base-repository.stub');
+        
+        $content = str_replace(
+            ['{{namespace}}'],
+            ['App\Repositories'],
+            $stub
+        );
+
+        File::ensureDirectoryExists(app_path('Repositories'));
+        File::put($repositoryPath, $content);
+    }
+
+    protected function generateInterfaceRepository($name)
+    {
+        $repositoryPath = app_path("Repositories/Contracts/{$name}RepositoryInterface.php");
+        $stub = file_get_contents(__DIR__ . '/../Stubs/interface-repository.stub');
+        
+        $content = str_replace(
+            ['{{class}}', '{{namespace}}'],
+            [$name, 'App\Repositories\Contracts'],
+            $stub
+        );
+
+        File::ensureDirectoryExists(app_path('Repositories\Contracts'));
+        File::put($repositoryPath, $content);
     }
 
     protected function generateRepository($name)

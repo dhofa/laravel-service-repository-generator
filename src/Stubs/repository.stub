@@ -3,20 +3,45 @@
 namespace {{namespace}};
 
 use App\Models\{{class}};
+use App\Repositories\Contracts\{{class}}RepositoryInterface;
+use Spatie\QueryBuilder\AllowedFilter;
 
-class {{class}}Repository
+class {{class}}Repository extends BaseRepository implements {{class}}RepositoryInterface
 {
-    protected $model;
 
     public function __construct({{class}} $model)
     {
-        $this->model = $model;
+        parent::__construct($model);
     }
 
-    public function all()
+    protected function getDefaultSorts(): array
     {
-        return $this->model->all();
+        return [
+            '-id',
+        ];
     }
 
-    // Add more repository methods as needed
+    protected function getAllowedFilters(): array
+    {
+        return [
+            AllowedFilter::exact('id'),
+            AllowedFilter::exact('uuid'),
+            AllowedFilter::scope('search'),
+            AllowedFilter::trashed(),
+        ];
+    }
+
+    protected function getAllowedSorts(): array
+    {
+        return [
+            'id',
+        ];
+    }
+
+    protected function getAllowedIncludes(): array
+    {
+        return [
+        
+        ];
+    }
 }

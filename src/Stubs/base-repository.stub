@@ -1,0 +1,116 @@
+<?php
+
+namespace {{namespace}};
+
+use App\Exceptions\AppException;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Spatie\QueryBuilder\QueryBuilder;
+use Illuminate\Support\Facades\DB;
+
+abstract class BaseRepository
+{
+    public function __construct(
+        protected Model $model,
+    ){}
+
+    public function query(): QueryBuilder
+    {
+        return QueryBuilder::for($this->model::class)
+            ->defaultSort($this->getDefaultSorts())
+            ->allowedFilters($this->getAllowedFilters())
+            ->allowedSorts($this->getAllowedSorts())
+            ->allowedIncludes($this->getAllowedIncludes());
+    }
+
+    public function get()
+    {
+        return $this->query()->get();
+    }
+
+    public function count()
+    {
+        return $this->query()->count();
+    }
+
+    public function paginate(int $perPage = 10): LengthAwarePaginator
+    {
+        return $this->query()->paginate($perPage);
+    }
+
+    public function find($id): ?Model
+    {
+        try {
+             if (is_numeric($id)) {
+                return $this->model->find($id);
+            } else {
+                return $this->model->where('uuid', $id)->first();
+            }
+        } catch (\Throwable $th) {
+            throw $th;
+        }
+    }
+
+    public function create(array $payload): Model
+    {
+        DB::beginTransaction();
+        try {
+            $store = $this->model->create($payload);
+            if ($store) {
+                DB::commit();
+                return $store;
+            }
+            
+            DB::rollback();
+            return throw new AppException('Upps gagal menyimpan data...');
+        } catch (\Throwable $th) {
+            DB::rollback();
+            throw $th;
+        }
+    }
+
+    public function update($id, array $payload): Model
+    {
+        DB::beginTransaction();
+        try {
+            $data = $this->find($id, true);
+            if ($data) {
+                $update = $data->update($payload);
+                if ($update) {
+                    DB::commit();
+                    $data = $this->find($id, true);
+                    return $data;
+                }
+            }
+
+            DB::rollback();
+            return throw new AppException('Upps data tidak ditemukan...');
+        } catch (\Throwable $th) {
+            DB::rollback();
+            throw $th;
+        }
+    }
+
+    public function delete($id): bool
+    {
+        DB::beginTransaction();
+        try {
+            $data = $this->find($id, true);
+            if ($data) {
+                $delete = $data->delete();
+                DB::commit();
+                return $delete;
+            }
+
+            DB::rollback();
+            return throw new AppException('Upps data tidak ditemukan...');
+        } catch (\Throwable $th) {
+            throw $th;
+        }
+    }
+
+    abstract protected function getDefaultSorts(): array;
+    abstract protected function getAllowedFilters(): array;
+    abstract protected function getAllowedSorts(): array;
+    abstract protected function getAllowedIncludes(): array;
+}
