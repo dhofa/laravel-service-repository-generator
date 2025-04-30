@@ -1,0 +1,2 @@
+    // Route for {{slug}}
+    Route::resource('{{slug}}', {{class}}Controller::class)->except(['create', 'edit']);

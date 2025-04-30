@@ -1,0 +1,113 @@
+<?php
+
+namespace {{namespace}};
+
+use Exception;
+use Throwable;
+
+use App\Helpers\ApiResponse;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Log;
+
+class AppException extends Exception
+{
+    public function __construct(
+        $message = "An error occurred",
+        protected $statusCode = Response::HTTP_BAD_REQUEST,
+    ) {
+        parent::__construct($message);
+    }
+
+    public function report(Throwable $exception): void
+    {
+        Log::error($exception->getMessage(), [
+            'exception'   => $exception,
+            'message'     => $exception->getMessage(),
+            'file'        => $exception->getFile(),
+            'line'        => $exception->getLine(),
+            'trace'       => $exception->getTrace(),
+            'traceString' => $exception->getTraceAsString(),
+        ]);
+    }
+
+    /**
+     * Render an exception to the console.
+     *
+     * @param  \Symfony\Component\Console\Output\OutputInterface $output
+     * @param  \Throwable  $e
+     * @return void
+     */
+    public function renderForConsole($output, Throwable $e): void
+    {
+        // Get the original output formatter
+        $formatter = $output->getFormatter();
+        
+        // Enable styling for better readability
+        $formatter->setDecorated(true);
+        
+        // Output the exception with full stack trace
+        $output->writeln('');
+        $output->writeln("<error>Exception:</error> {$e->getMessage()}");
+        $output->writeln("<error>File:</error> {$e->getFile()}:{$e->getLine()}");
+        $output->writeln('');
+        $output->writeln("<error>Stack trace:</error>");
+        $output->writeln($e->getTraceAsString());
+        $output->writeln('');
+        
+        // If you want to show previous exceptions in the chain
+        if ($previous = $e->getPrevious()) {
+            $output->writeln('');
+            $output->writeln("<error>Previous Exception:</error>");
+            $this->renderForConsole($output, $previous);
+        }
+    }
+
+    public function render($request, Throwable $exception)
+    {
+        // Jika path mengandung '/api', kembalikan response JSON
+        if ($request->is('api/*')) {
+            $message = $exception->getMessage();
+
+            // Handle result data exception
+            $data = [
+                'message' => $exception->getMessage(),
+            ];
+
+            if (config('app.debug')) {
+                $data['file'] = $exception->getFile();
+                $data['line'] = $exception->getLine();
+                $data['trace'] = collect($exception->getTrace())->map(function ($trace) {
+                    return [
+                        'file' => $trace['file'] ?? null,
+                        'line' => $trace['line'] ?? null,
+                        'function' => $trace['function'] ?? null,
+                        'class' => $trace['class'] ?? null,
+                    ];
+                })->toArray();
+            }
+
+            return ApiResponse::error($message, $data, $this->statusCode);
+        }
+
+        // Jika bukan API, render view error
+        if (config('app.debug')) {
+            return response()->view('errors.custom', [
+                'exception'   => $exception,
+                'message'     => $exception->getMessage(),
+                'file'        => $exception->getFile(),
+                'line'        => $exception->getLine(),
+                'trace'       => $exception->getTrace(),
+                'traceString' => $exception->getTraceAsString(),
+            ]);
+        }
+
+        return response()->view('errors.default', [
+            'exception'   => $exception,
+            'message'     => $exception->getMessage(),
+            'file'        => $exception->getFile(),
+            'line'        => $exception->getLine(),
+            'trace'       => $exception->getTrace(),
+            'traceString' => $exception->getTraceAsString(),
+        ]);
+    }
+}

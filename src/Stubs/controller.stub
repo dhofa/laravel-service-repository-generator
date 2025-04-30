@@ -1,0 +1,77 @@
+<?php
+
+namespace {{namespace}};
+
+use App\Helpers\ApiResponse;
+use App\Http\Requests\{{class}}\CreateRequest;
+use App\Http\Requests\{{class}}\UpdateRequest;
+use App\Services\{{class}}Service;
+use Illuminate\Http\Request;
+
+class {{class}}Controller extends Controller
+{
+    public function __construct(
+        protected {{class}}Service ${{camel_class}}Service,
+    ) {}
+
+    /**
+     * Display a listing of the resource.
+     */
+    public function index(Request $request)
+    {
+        $result = $this->{{camel_class}}Service->getAll{{class}}($request);
+        if ($result) {
+            return ApiResponse::success('Berhasil mendapatkan data', $result);
+        } else {
+            return ApiResponse::error('Gagal mendapatkan data');
+        }
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(CreateRequest $request)
+    {
+        $result = $this->{{camel_class}}Service->create{{class}}($request);
+        if ($result) {
+            return ApiResponse::success('Berhasil mendapatkan data', $result);
+        } else {
+            return ApiResponse::error('Gagal mendapatkan data');
+        }
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(string $id)
+    {
+        $result = $this->{{camel_class}}Service->find{{class}}($id);
+        return ApiResponse::success('Berhasil mendapatkan data', $result);
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(UpdateRequest $request, string $id)
+    {
+        $result = $this->{{camel_class}}Service->update{{class}}($request, $id);
+        if ($result) {
+            return ApiResponse::success('Berhasil mengupdate data', $result);
+        } else {
+            return ApiResponse::error('Gagal mengupdate data');
+        }
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(string $id)
+    {
+        $result = $this->{{camel_class}}Service->delete{{class}}($id);
+        if ($result) {
+            return ApiResponse::success('Berhasil menghapus data');
+        } else {
+            return ApiResponse::error('Gagal menghapus data');
+        }
+    }
+}

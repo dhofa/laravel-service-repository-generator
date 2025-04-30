@@ -14,10 +14,7 @@ class GenerateServiceRepository extends Command
     public function handle()
     {
         $name = $this->argument('name');
-        
-        // Generate Base Repository
-        $this->generateBaseRepository();
-
+     
         // Generate Migration
         $this->generateMigration($name);
 
@@ -39,6 +36,15 @@ class GenerateServiceRepository extends Command
         // Generate Service
         $this->generateService($name);
 
+        // Generate Controller
+        $this->generateController($name);
+
+        // Generate Api Route
+        $this->generateApiRoute($name);
+
+        // Register RepositoryServiceProvider
+        $this->registerRepositoryServiceProvider($name);
+
         $this->info("Service and Repository for {$name} created successfully!");
     }
 
@@ -55,7 +61,7 @@ class GenerateServiceRepository extends Command
         File::ensureDirectoryExists(database_path('migrations'));
         File::put($migrationPath, $contentMigration);
 
-        $this->info("Migration for {$name} created successfully at <info>{$migrationPath}</info>!");
+        $this->info("Migration for {$name} created successfully at <info><a href='{$migrationPath}'>" . basename($migrationPath) . "</a></info>!");
     }
 
     protected function generateModel($name)
@@ -70,7 +76,7 @@ class GenerateServiceRepository extends Command
         File::ensureDirectoryExists(app_path('Models'));
         File::put($modelPath, $contentModel);
 
-        $this->info("Model for {$name} created successfully at <info>{$modelPath}</info>!");
+        $this->info("Model for {$name} created successfully at <info><a href='{$modelPath}'>" . basename($modelPath) . "</a></info>!");
     }
 
     protected function generateRequest($name)
@@ -96,7 +102,7 @@ class GenerateServiceRepository extends Command
         File::put($createRequestPath, $contentCreate);
         File::put($updateRequestPath, $contentUpdate);
 
-        $this->info("Request for {$name} created successfully at <info>{$createRequestPath}</info> and <info>{$updateRequestPath}</info>!");
+        $this->info("Request for {$name} created successfully at <info><a href='{$createRequestPath}'>" . basename($createRequestPath) . "</a></info> and <info><a href='{$updateRequestPath}'>" . basename($updateRequestPath) . "</a></info>!");
     }
 
     protected function generateResource($name)
@@ -113,7 +119,7 @@ class GenerateServiceRepository extends Command
         File::ensureDirectoryExists(app_path('Http/Resources'));
         File::put($resourcePath, $content);
 
-        $this->info("Resource for {$name} created successfully at <info>{$resourcePath}</info>!");
+        $this->info("Resource for {$name} created successfully at <info><a href='{$resourcePath}'>" . basename($resourcePath) . "</a></info>!");
     }
 
     protected function generateService($name)
@@ -130,24 +136,7 @@ class GenerateServiceRepository extends Command
         File::ensureDirectoryExists(app_path('Services'));
         File::put($servicePath, $content);
 
-        $this->info("Service for {$name} created successfully at <info>{$servicePath}</info>!");
-    }
-
-    protected function generateBaseRepository()
-    {
-        $repositoryPath = app_path("Repositories/BaseRepository.php");
-        $stub = file_get_contents(__DIR__ . '/../Stubs/base-repository.stub');
-        
-        $content = str_replace(
-            ['{{namespace}}'],
-            ['App\Repositories'],
-            $stub
-        );
-
-        File::ensureDirectoryExists(app_path('Repositories'));
-        File::put($repositoryPath, $content);
-
-        $this->info("Base Repository created successfully at <info>{$repositoryPath}</info>!");
+        $this->info("Service for {$name} created successfully at <info><a href='{$servicePath}'>" . basename($servicePath) . "</a></info>!");
     }
 
     protected function generateInterfaceRepository($name)
@@ -164,7 +153,7 @@ class GenerateServiceRepository extends Command
         File::ensureDirectoryExists(app_path('Repositories\Contracts'));
         File::put($repositoryPath, $content);
 
-        $this->info("Interface Repository for {$name} created successfully at <info>{$repositoryPath}</info>!");
+        $this->info("Interface Repository for {$name} created successfully at <info><a href='{$repositoryPath}'>" . basename($repositoryPath) . "</a></info>!");
     }
 
     protected function generateRepository($name)
@@ -181,6 +170,177 @@ class GenerateServiceRepository extends Command
         File::ensureDirectoryExists(app_path('Repositories'));
         File::put($repositoryPath, $content);
 
-        $this->info("Service and Repository for {$name} created successfully at <info>{$repositoryPath}</info>!");
+        $this->info("Service and Repository for {$name} created successfully at <info><a href='{$repositoryPath}'>" . basename($repositoryPath) . "</a></info>!");
+    }
+
+    protected function generateController($name)
+    {
+        $controllerPath = app_path("Http/Controllers/{$name}Controller.php");
+        $stub = file_get_contents(__DIR__ . '/../Stubs/controller.stub');
+        
+        $content = str_replace(
+            ['{{class}}', '{{namespace}}', '{{camel_class}}'],
+            [$name, 'App\Http\Controllers', Str::of($name)->camel()],
+            $stub
+        );
+
+        File::ensureDirectoryExists(app_path('Http/Controllers'));
+        File::put($controllerPath, $content);
+
+        $this->info("Controller for {$name} created successfully at <info><a href='{$controllerPath}'>" . basename($controllerPath) . "</a></info>!");
+    }
+
+    protected function generateApiRoute($name)
+    {
+        $filePath = base_path("routes/api.php");
+        $stub = file_get_contents(__DIR__ . '/../Stubs/api-route.stub');
+        
+        $stubContent = str_replace(
+            ['{{class}}', '{{slug}}'],
+            [$name, Str::of($name)->slug('-')],
+            $stub
+        );
+
+        File::ensureDirectoryExists(base_path('routes'));
+        
+        $this->insertApiRoute($filePath, $stubContent, $name);
+
+        $insertAfter = '<?php';
+        $useStatements = [
+            "use App\Http\Controllers\\{$name}Controller;",
+        ];
+        $this->insertUseCode($filePath, $stubContent, $useStatements, $insertAfter);
+    }
+
+    protected function insertApiRoute($filePath, $stubContent, $class)
+    {
+        $content = File::get($filePath);
+        $lines = explode("\n", $content);
+        $newLines = [];
+    
+        $insideGroup = false;
+        $bracketCount = 0;
+        $inserted = false;
+    
+        foreach ($lines as $line) {
+            $trimmed = trim($line);
+    
+            // Deteksi awal grup Route::prefix('/v1')
+            if (str_contains($trimmed, "Route::prefix('/v1')")) {
+                $insideGroup = true;
+            }
+    
+            if ($insideGroup) {
+                $bracketCount += substr_count($line, '{');
+                $bracketCount -= substr_count($line, '}');
+    
+                // Sebelum tutup grup, tambahkan route
+                if ($bracketCount === 0 && !$inserted) {
+                    $newLines[] = "    " . $stubContent . "\n";
+                    $inserted = true;
+                    $insideGroup = false;
+                }
+            }
+    
+            $newLines[] = $line;
+        }
+    
+        File::put($filePath, implode("\n", $newLines));
+        $this->info("Route for {$class} added to routes/api.php");
+    }
+
+    protected function registerRepositoryServiceProvider($name)
+    {
+        $filePath = app_path("Providers/RepositoryServiceProvider.php");
+        $stub = file_get_contents(__DIR__ . '/../Stubs/repository-service-provider-bind.stub');
+        
+        $bindCode = str_replace(
+            ['{{class}}', '{{namespace}}'],
+            [$name, 'App\Providers'],
+            $stub
+        );
+    
+        $content = File::get($filePath);
+
+        File::ensureDirectoryExists(app_path('Providers'));
+        if (!File::exists($filePath)) {
+            (new InitServiceRepository())->generateRepositoryServiceProvider();
+        }
+
+        $this->insertBindCodeProvider($filePath, $bindCode, $content);
+        
+        $insertAfter = 'namespace App\Providers;';
+        $useStatements = [
+            "use App\Models\\$name;",
+            "use App\Repositories\Contracts\\{$name}RepositoryInterface;",
+            "use App\Repositories\\{$name}Repository;",
+        ];
+        $this->insertUseCode($filePath, $content, $useStatements, $insertAfter);
+    }
+
+    protected function insertBindCodeProvider($filePath, $bindCode, $content) 
+    {
+        // Start Insert binding
+        $lines = explode("\n", $content);
+
+        $newLines = [];
+        $insideRegister = false;
+        $bracketCount = 0;
+
+        foreach ($lines as $index => $line) {
+            $trimmed = trim($line);
+
+            // Awal method register
+            if (str_contains($trimmed, 'public function register()')) {
+                $insideRegister = true;
+            }
+
+            if ($insideRegister) {
+                // Hitung kurung untuk tahu batas method
+                $bracketCount += substr_count($line, '{');
+                $bracketCount -= substr_count($line, '}');
+
+                // Jika akan menutup method (kurung }), sisipkan sebelum ini
+                if ($bracketCount === 0 && trim($trimmed) === '}') {
+                    // Sisipkan binding sebelum }
+                    $newLines[] = "        " . $bindCode;
+                }
+            }
+
+            $newLines[] = $line;
+        }
+
+        File::put($filePath, implode("\n", $newLines));
+        $this->info('Binding added to RepositoryServiceProvider.');
+        // End Insert binding
+    }
+
+    protected function insertUseCode($filePath, $content, $useStatements, $insertAfter) 
+    {
+        $content = File::get($filePath);
+        $lines = explode("\n", $content);
+        $newLines = [];
+    
+        $inserted = false;
+    
+        foreach ($lines as $index => $line) {
+            $newLines[] = $line;
+    
+            // Setelah namespace, tambahkan use baru jika belum ditambahkan
+            if (trim($line) === $insertAfter && !$inserted) {
+                $newLines[] = ""; // Baris kosong setelah namespace
+                foreach ($useStatements as $use) {
+                    // Cek dulu biar tidak duplikat
+                    if (!str_contains($content, $use)) {
+                        $newLines[] = $use;
+                    }
+                }
+                $inserted = true;
+            }
+        }
+    
+        File::put($filePath, implode("\n", $newLines));
+    
+        $this->info('Use statements inserted successfully.');
     }
 }

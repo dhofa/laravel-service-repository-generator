@@ -1,0 +1,36 @@
+<?php
+
+namespace {{namespace}};
+use Illuminate\Http\Response;
+
+class ApiResponse
+{
+    public static function success($message = null, $data = null, $statusCode = Response::HTTP_OK)
+    {
+        return self::response(
+            true,
+            $message,
+            $data,
+            $statusCode,
+        );
+    }
+
+    public static function error($message, $data = null, $statusCode = Response::HTTP_BAD_REQUEST)
+    {
+        return self::response(
+            false,
+            $message,
+            $data,
+            $statusCode,
+        );
+    }
+
+    private static function response($status = true, $message = null, $data = null, $statusCode = Response::HTTP_OK)
+    {
+        return response()->json([
+            'success' => $status,
+            'message' => $message,
+            'result'  => $data
+        ], $statusCode);
+    }
+}

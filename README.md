@@ -24,4 +24,9 @@ composer require "dhofa/laravel-service-repository-generator @dev"
 
 ## Usage
 You can use this package by running the following command:
+
+### Initialize base configuration
+php artisan init-service-repository
+
+### Generate service repository class
 php artisan make:service-repository ModelName
