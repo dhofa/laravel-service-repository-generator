@@ -5,13 +5,12 @@ namespace App\Models;
 use App\Traits\Uuid;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Str;
 
 class {{class}} extends Model
 {
     use Uuid, SoftDeletes;
 
-    protected $table = '{{Str::plural(Str::snake(class))}}';
+    protected $table = "{{table_name}}";
 
     /**
      * The attributes that are mass assignable.

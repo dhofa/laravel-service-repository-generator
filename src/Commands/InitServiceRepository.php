@@ -134,12 +134,7 @@ class InitServiceRepository extends Command
         );
 
         File::ensureDirectoryExists(base_path('bootstrap'));
-        if (File::exists($repositoryPath)) {
-            $this->warn("File RepositoryServiceProvider.php already exists at <info><a href='{$repositoryPath}'>" . basename($repositoryPath) . "</a></info>. Skipping...");
-            return;
-        } else {
-            File::put($repositoryPath, $content);
-            $this->info("RouteServiceProvider created successfully at <info><a href='{$repositoryPath}'>" . basename($repositoryPath) . "</a></info>!");
-        }
+        File::put($repositoryPath, $content);
+        $this->info("RouteServiceProvider created successfully at <info><a href='{$repositoryPath}'>" . basename($repositoryPath) . "</a></info>!");
     }
 }

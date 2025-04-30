@@ -69,8 +69,8 @@ class GenerateServiceRepository extends Command
         $modelPath = app_path("Models/{$name}.php");
         $stubModel = file_get_contents(__DIR__ . '/../Stubs/model.stub');
         $contentModel = str_replace(
-            ['{{class}}', '{{namespace}}'],
-            [$name, 'App\Models'],
+            ['{{class}}', '{{namespace}}', '{{table_name}}'],
+            [$name, 'App\Models', Str::plural(Str::snake($name))],
             $stubModel
         );
         File::ensureDirectoryExists(app_path('Models'));
@@ -150,7 +150,9 @@ class GenerateServiceRepository extends Command
             $stub
         );
 
-        File::ensureDirectoryExists(app_path('Repositories\Contracts'));
+        if (!file_exists(app_path('Repositories/Contracts')) || !is_dir(app_path('Repositories/Contracts'))) {
+            File::makeDirectory(app_path('Repositories/Contracts'), 0755, true);
+        }
         File::put($repositoryPath, $content);
 
         $this->info("Interface Repository for {$name} created successfully at <info><a href='{$repositoryPath}'>" . basename($repositoryPath) . "</a></info>!");
@@ -167,7 +169,9 @@ class GenerateServiceRepository extends Command
             $stub
         );
 
-        File::ensureDirectoryExists(app_path('Repositories'));
+        if (!File::exists(app_path('Repositories'))) {
+            File::makeDirectory(app_path('Repositories'), 0755, true);
+        }
         File::put($repositoryPath, $content);
 
         $this->info("Service and Repository for {$name} created successfully at <info><a href='{$repositoryPath}'>" . basename($repositoryPath) . "</a></info>!");
