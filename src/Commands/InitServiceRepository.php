@@ -63,6 +63,11 @@ class InitServiceRepository extends Command
 
     protected function generateTraits()
     {
+        $this->uuidTrait();
+        $this->slugTrait();
+    }
+
+    protected function uuidTrait() {
         $uuidPath = app_path("Traits/Uuid.php");
         $stub = file_get_contents(__DIR__ . '/../Stubs/uuid.stub');
         
@@ -76,6 +81,22 @@ class InitServiceRepository extends Command
         File::put($uuidPath, $content);
 
         $this->info("Traits created successfully at <info><a href='{$uuidPath}'>" . basename($uuidPath) . "</a></info>!");
+    }
+
+    protected function slugTrait() {
+        $slugPath = app_path("Traits/HasSlug.php");
+        $stub = file_get_contents(__DIR__ . '/../Stubs/slug.stub');
+        
+        $content = str_replace(
+            ['{{namespace}}'],
+            ['App\Traits'],
+            $stub
+        );
+
+        File::ensureDirectoryExists(app_path('Traits'));
+        File::put($slugPath, $content);
+
+        $this->info("Traits created successfully at <info><a href='{$slugPath}'>" . basename($slugPath) . "</a></info>!");
     }
 
     protected function generateResource(){

@@ -1,0 +1,83 @@
+<?php
+
+namespace App\Traits;
+
+use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\Model;
+
+trait HasSlug
+{
+    /**
+     * Boot the trait.
+     */
+    protected static function bootHasSlug()
+    {
+        static::creating(function (Model $model) {
+            if (empty($model->slug)) {
+                $model->slug = $model->generateUniqueSlug();
+            }
+        });
+
+        static::updating(function (Model $model) {
+            if ($model->isDirty('name') && !$model->isDirty('slug')) {
+                $model->slug = $model->generateUniqueSlug();
+            }
+
+            if ($model->isDirty('title') && !$model->isDirty('slug')) {
+                $model->slug = $model->generateUniqueSlug();
+            }
+        });
+    }
+
+    /**
+     * Generate a unique slug.
+     *
+     * @param string $value
+     * @return string
+     */
+    public function generateUniqueSlug($value = null): string
+    {
+        if (empty($value)) {
+            $value = $this->name ?? $this->title;
+        }
+
+        $slug = Str::slug($value);
+        $originalSlug = $slug;
+        $count = 2;
+
+        while ($this->slugExists($slug)) {
+            $slug = $originalSlug . '-' . $count;
+            $count++;
+        }
+
+        return $slug;
+    }
+
+    /**
+     * Check if a slug already exists.
+     *
+     * @param string $slug
+     * @return bool
+     */
+    protected function slugExists(string $slug): bool
+    {
+        $key = $this->getKey();
+        $query = static::where('slug', $slug);
+        
+        if ($key) {
+            $query->where($this->getKeyName(), '!=', $key);
+        }
+
+        return $query->withoutGlobalScopes()->exists();
+    }
+
+    /**
+     * Get the route key for the model.
+     *
+     * @return string
+     */
+    public function getRouteKeyName()
+    {
+        return 'slug';
+    }
+}
