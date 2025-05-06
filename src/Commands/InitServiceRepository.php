@@ -20,6 +20,9 @@ class InitServiceRepository extends Command
         // Initialize Traits
         $this->generateTraits();
 
+        // Generate Resource
+        $this->generateResource();
+
         // Generate ApiResponse
         $this->generateApiResponse();
 
@@ -73,6 +76,22 @@ class InitServiceRepository extends Command
         File::put($uuidPath, $content);
 
         $this->info("Traits created successfully at <info><a href='{$uuidPath}'>" . basename($uuidPath) . "</a></info>!");
+    }
+
+    protected function generateResource(){
+        $resourcePath = app_path("Http/Resources/PaginateCollection.php");
+        $stub = file_get_contents(__DIR__ . '/../Stubs/paginate-collection.stub');
+        
+        $content = str_replace(
+            ['{{namespace}}'],
+            ['App\Http\Resources'],
+            $stub
+        );
+
+        File::ensureDirectoryExists(app_path("Http/Resources"));
+        File::put($resourcePath, $content);
+
+        $this->info("App Resource created successfully at <info><a href='{$resourcePath}'>" . basename($resourcePath) . "</a></info>!");
     }
 
     protected function generateAppException()
