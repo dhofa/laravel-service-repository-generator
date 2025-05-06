@@ -106,7 +106,7 @@ class InitServiceRepository extends Command
         File::ensureDirectoryExists(app_path('Repositories'));
         File::put($baseRepositoryPath, $content);
 
-        $this->info("Base Repository created successfully at <info><a href='{$baseRepositoryPath}'>" . basename($repositoryPath) . "</a></info>!");
+        $this->info("Base Repository created successfully at <info><a href='{$baseRepositoryPath}'>" . basename($baseRepositoryPath) . "</a></info>!");
     }
 
     protected function generateApiResponse()
