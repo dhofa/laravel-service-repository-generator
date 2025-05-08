@@ -46,6 +46,27 @@ class InitServiceRepository extends Command
 
     protected function installDependencies()
     {
+        $this->installLaravelApi();
+        $this->installLaravelQueryBuilder();
+    }
+
+    protected function installLaravelApi() {
+        $this->info('Running artisan command: install:api...');
+
+        $process = new Process(['php', 'artisan', 'install:api']);
+        $process->setTimeout(300); // optional, in seconds
+        $process->run(function ($type, $buffer) {
+            echo $buffer;
+        });
+
+        if (!$process->isSuccessful()) {
+            throw new ProcessFailedException($process);
+        }
+
+        $this->info('Artisan command install:api executed successfully.');
+    }
+
+    protected function installLaravelQueryBuilder() {
         $this->info('Installing spatie/laravel-query-builder...');
 
         $process = new Process(['composer', 'require', 'spatie/laravel-query-builder']);
