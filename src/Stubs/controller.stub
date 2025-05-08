@@ -2,6 +2,7 @@
 
 namespace {{namespace}};
 
+use App\Http\Controllers\Controller;
 use App\Helpers\ApiResponse;
 use App\Http\Requests\{{class}}\CreateRequest;
 use App\Http\Requests\{{class}}\UpdateRequest;

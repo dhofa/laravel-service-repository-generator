@@ -179,16 +179,16 @@ class GenerateServiceRepository extends Command
 
     protected function generateController($name)
     {
-        $controllerPath = app_path("Http/Controllers/{$name}Controller.php");
+        $controllerPath = app_path("Http/Controllers/Api/{$name}Controller.php");
         $stub = file_get_contents(__DIR__ . '/../Stubs/controller.stub');
         
         $content = str_replace(
             ['{{class}}', '{{namespace}}', '{{camel_class}}'],
-            [$name, 'App\Http\Controllers', Str::of($name)->camel()],
+            [$name, 'App\Http\Controllers\Api', Str::of($name)->camel()],
             $stub
         );
 
-        File::ensureDirectoryExists(app_path('Http/Controllers'));
+        File::ensureDirectoryExists(app_path('Http/Controllers/Api'));
         File::put($controllerPath, $content);
 
         $this->info("Controller for {$name} created successfully at <info><a href='{$controllerPath}'>" . basename($controllerPath) . "</a></info>!");
@@ -211,7 +211,7 @@ class GenerateServiceRepository extends Command
 
         $insertAfter = '<?php';
         $useStatements = [
-            "use App\Http\Controllers\\{$name}Controller;",
+            "use App\Http\Controllers\Api\\{$name}Controller;",
         ];
         $this->insertUseCode($filePath, $stubContent, $useStatements, $insertAfter);
     }
